@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 # Script to implement a test console with firmware over serial port
 #
-# Copyright (C) 2016,2017  Kevin O'Connor <kevin@koconnor.net>
+# Copyright (C) 2016-2021  Kevin O'Connor <kevin@koconnor.net>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import sys, optparse, os, re, logging
@@ -30,8 +30,10 @@ help_txt = """
 re_eval = re.compile(r'\{(?P<eval>[^}]*)\}')
 
 class KeyboardReader:
-    def __init__(self, ser, reactor):
-        self.ser = ser
+    def __init__(self, reactor, serialport, baud):
+        self.serialport = serialport
+        self.baud = baud
+        self.ser = serialhdl.SerialReader(reactor)
         self.reactor = reactor
         self.start_time = reactor.monotonic()
         self.clocksync = clocksync.ClockSync(self.reactor)
@@ -52,7 +54,10 @@ class KeyboardReader:
     def connect(self, eventtime):
         self.output(help_txt)
         self.output("="*20 + " attempting to connect " + "="*20)
-        self.ser.connect()
+        if self.baud:
+            self.ser.connect_uart(self.serialport, self.baud)
+        else:
+            self.ser.connect_pipe(self.serialport)
         msgparser = self.ser.get_msgparser()
         self.output("Loaded %d commands (%s / %s)" % (
             len(msgparser.messages_by_id),
@@ -203,8 +208,7 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG)
     r = reactor.Reactor()
-    ser = serialhdl.SerialReader(r, serialport, baud)
-    kbd = KeyboardReader(ser, r)
+    kbd = KeyboardReader(r, serialport, baud)
     try:
         r.run()
     except KeyboardInterrupt:
