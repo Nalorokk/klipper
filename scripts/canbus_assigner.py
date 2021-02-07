@@ -102,6 +102,9 @@ CMD_NODEID_SET   = 2
 CMD_RESET        = 3
 CMD_BOOTLOADER   = 4
 
+RESP_NEED_CANID = 32
+RESP_HAVE_CANID = 33
+
 class CanNode:
     def __init__(self, uuid, nodeid, timestamp):
         self.uuid = uuid
@@ -136,7 +139,7 @@ def send_query_all(bus):
 
 def send_query(bus, uuid):
     msg = can.Message(arbitration_id=HOST_TO_NODE_ID,
-                      data=[CMD_NODEID_QUERY, 0,
+                      data=[CMD_NODEID_QUERY,
                             uuid[0], uuid[1], uuid[2],
                             uuid[3], uuid[4], uuid[5]],
                       is_extended_id=False)
@@ -145,15 +148,15 @@ def send_query(bus, uuid):
 def send_set_nodeid(bus, nodeid, uuid):
 
     msg = can.Message(arbitration_id=HOST_TO_NODE_ID,
-                      data=[CMD_NODEID_SET, nodeid,
+                      data=[CMD_NODEID_SET,
                             uuid[0], uuid[1], uuid[2],
-                            uuid[3], uuid[4], uuid[5]],
+                            uuid[3], uuid[4], uuid[5], nodeid],
                       is_extended_id=False)
     bus.send(msg)
 
 def send_reset(bus, uuid):
     msg = can.Message(arbitration_id=HOST_TO_NODE_ID,
-                      data=[CMD_RESET, 0,
+                      data=[CMD_RESET,
                             uuid[0], uuid[1], uuid[2],
                             uuid[3], uuid[4], uuid[5]],
                       is_extended_id=False)
@@ -161,7 +164,7 @@ def send_reset(bus, uuid):
 
 def send_bootloader(bus, uuid):
     msg = can.Message(arbitration_id=HOST_TO_NODE_ID,
-                      data=[CMD_BOOTLOADER, 0,
+                      data=[CMD_BOOTLOADER,
                             uuid[0], uuid[1], uuid[2],
                             uuid[3], uuid[4], uuid[5]],
                       is_extended_id=False)
@@ -203,11 +206,11 @@ def nodeidadmin(iface):
             elif message.arbitration_id == NODE_TO_HOST_ID and message.dlc == 8:
                 # print(message)
                 cmd   = message.data[0]
-                nodeid = message.data[1]
-                uuid  = (message.data[2], message.data[3], message.data[4],
-                         message.data[5], message.data[6], message.data[7])
+                nodeid = message.data[7]
+                uuid  = (message.data[1], message.data[2], message.data[3],
+                         message.data[4], message.data[5], message.data[6])
 
-                if cmd == 0: # An unassigned node
+                if cmd == RESP_NEED_CANID: # An unassigned node
                     # Need to assign a nodeid to the node
                     node = nodes.get_node(uuid)
                     if node is None:
@@ -217,7 +220,7 @@ def nodeidadmin(iface):
                           + " nodeid %x" % node.nodeid)
                     send_set_nodeid(bus, node.nodeid, node.uuid)
 
-                if cmd == 1: # An assigned node
+                if cmd == RESP_HAVE_CANID: # An assigned node
                     node = nodes.get_node(uuid)
                     if node is None:
                         # An old already assigned node that we have no record of
