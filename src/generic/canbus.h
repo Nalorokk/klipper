@@ -3,9 +3,8 @@
 
 #include <stdint.h> // uint32_t
 
-#define CANBUS_ID_UUID 0x321
-#define CANBUS_ID_SET 0x322
-#define CANBUS_ID_UUID_RESP 0x323
+#define CANBUS_ID_ADMIN 0x3f0
+#define CANBUS_ID_ADMIN_RESP 0x3f1
 #define CANBUS_UUID_LEN 6
 
 // callbacks provided by board specific code
