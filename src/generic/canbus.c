@@ -89,7 +89,6 @@ console_sendf(const struct command_encoder *ce, va_list args)
 #define CANBUS_CMD_QUERY_UNASSIGNED 0
 #define CANBUS_CMD_QUERY 1
 #define CANBUS_CMD_SET_CANID 2
-#define CANBUS_CMD_REBOOT 3
 #define CANBUS_RESP_NEED_CANID 32
 #define CANBUS_RESP_HAVE_CANID 33
 
@@ -167,13 +166,6 @@ can_process_set_canid(uint32_t id, uint32_t len, uint8_t *data)
     }
 }
 
-static void
-can_process_reboot(uint32_t id, uint32_t len, uint8_t *data)
-{
-    if (can_check_uuid(id, len, data))
-        canbus_reboot();
-}
-
 // Handle an "admin" command
 static void
 can_process(uint32_t id, uint32_t len, uint8_t *data)
@@ -189,9 +181,6 @@ can_process(uint32_t id, uint32_t len, uint8_t *data)
         break;
     case CANBUS_CMD_SET_CANID:
         can_process_set_canid(id, len, data);
-        break;
-    case CANBUS_CMD_REBOOT:
-        can_process_reboot(id, len, data);
         break;
     }
 }

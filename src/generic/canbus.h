@@ -11,7 +11,6 @@
 int canbus_read(uint32_t *id, uint8_t *data);
 int canbus_send(uint32_t id, uint32_t len, uint8_t *data);
 void canbus_set_filter(uint32_t id);
-void canbus_reboot(void);
 
 // canbus.c
 void canbus_notify_tx(void);

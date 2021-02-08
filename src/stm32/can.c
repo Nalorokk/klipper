@@ -185,12 +185,6 @@ canbus_set_filter(uint32_t id)
     SOC_CAN->FMR &= ~CAN_FMR_FINIT;
 }
 
-void
-canbus_reboot(void)
-{
-    NVIC_SystemReset();
-}
-
 // This function handles CAN global interrupts
 void
 CAN_IRQHandler(void)
